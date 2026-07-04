@@ -1,0 +1,21 @@
+# Python
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+
+# Model file (too large for GitHub)
+backend/plant_model.pth
+
+# Node
+frontend/node_modules/
+
+# Environment
+.env
+*.env
+
+# Database
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
