@@ -1,9 +1,11 @@
+import os
 import torch
 import torchvision.transforms as transforms
 from torchvision import models
 from PIL import Image
 import io
 import json
+
 
 CLASSES = [
     'Apple___Apple_scab', 'Apple___Black_rot', 'Apple___Cedar_apple_rust', 'Apple___healthy',
