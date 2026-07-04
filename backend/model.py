@@ -49,9 +49,13 @@ transform = transforms.Compose([
 ])
 
 def load_model(model_path: str = "plant_model.pth"):
-    model = models.mobilenet_v2(weights=None)
+    model = models.mobilenet_v2(weights="IMAGENET1K_V1")
     model.classifier[1] = torch.nn.Linear(model.last_channel, len(CLASSES))
-    model.load_state_dict(torch.load(model_path, map_location="cpu"))
+    if os.path.exists(model_path):
+        model.load_state_dict(torch.load(model_path, map_location="cpu"))
+        print(f"✅ Trained model loaded!")
+    else:
+        print(f"⚠️ No trained model found, using pretrained weights")
     model.eval()
     return model
 
