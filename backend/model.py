@@ -5,7 +5,7 @@ from torchvision import models
 from PIL import Image
 import io
 import json
-
+import gdown
 
 CLASSES = [
     'Apple___Apple_scab', 'Apple___Black_rot', 'Apple___Cedar_apple_rust', 'Apple___healthy',
@@ -51,18 +51,26 @@ transform = transforms.Compose([
 ])
 
 def load_model(model_path: str = "plant_model.pth"):
-    model = models.mobilenet_v2(weights="IMAGENET1K_V1")
+    if not os.path.exists(model_path):
+        print("Downloading model from Google Drive...")
+        file_id = "1boyG5srxnmuNGhuQhDbEEvBOikZg4BFe"
+        gdown.download(f"https://drive.google.com/uc?id={file_id}", model_path, quiet=False)
+        print("Model downloaded!")
+
+    model = models.mobilenet_v2(weights=None)
     model.classifier[1] = torch.nn.Linear(model.last_channel, len(CLASSES))
     if os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path, map_location="cpu"))
-        print(f"✅ Trained model loaded!")
+        print("✅ Trained model loaded!")
     else:
-        print(f"⚠️ No trained model found, using pretrained weights")
+        model = models.mobilenet_v2(weights="IMAGENET1K_V1")
+        model.classifier[1] = torch.nn.Linear(model.last_channel, len(CLASSES))
+        print("⚠️ Using pretrained weights")
     model.eval()
     return model
 
 MODEL = load_model()
-print(f"✅ Model loaded with {len(CLASSES)} classes")
+print(f"Model loaded with {len(CLASSES)} classes")
 
 def predict(image_bytes: bytes) -> dict:
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
