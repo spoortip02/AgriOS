@@ -28,33 +28,36 @@ export default function WeatherPanel({ apiUrl }) {
   const [locationName, setLocationName] = useState("")
 
   async function handleCitySearch() {
-    if (!cityInput.trim()) return
-    setLoading(true)
-    setError(null)
-    try {
-      const coords = await cityToCoords(cityInput)
-      setLocationName(`${coords.name}, ${coords.country}`)
-      await fetchWeather(coords.lat, coords.lon)
-    } catch (e) {
-      setError("City not found. Try another name.")
-      setLoading(false)
-    }
+  if (!cityInput.trim()) return
+  setLoading(true)
+  setError(null)
+  try {
+    const coords = await cityToCoords(cityInput)
+    setLocationName(`${coords.name}, ${coords.country}`)
+    await fetchWeather(coords.lat, coords.lon)
+  } catch (e) {
+    setError(`Error: ${e.message}`)
+    setLoading(false)
   }
+}
 
   async function fetchWeather(lat, lon) {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch(`${apiUrl}/weather?lat=${lat}&lon=${lon}`)
-      if (!res.ok) throw new Error("Failed")
-      const data = await res.json()
-      setWeather(data)
-    } catch (e) {
-      setError("Could not load weather data.")
-    } finally {
-      setLoading(false)
-    }
+  setLoading(true)
+  setError(null)
+  try {
+    const url = `${apiUrl}/weather?lat=${lat}&lon=${lon}`
+    console.log("Fetching:", url)
+    const res = await fetch(url)
+    console.log("Status:", res.status)
+    if (!res.ok) throw new Error(`Server returned ${res.status}`)
+    const data = await res.json()
+    setWeather(data)
+  } catch (e) {
+    setError(`Could not load weather: ${e.message}`)
+  } finally {
+    setLoading(false)
   }
+}
 
   useEffect(() => {
     if (navigator.geolocation) {
