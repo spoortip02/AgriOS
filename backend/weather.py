@@ -23,7 +23,8 @@ async def get_weather_and_risk(lat: float, lon: float):
     url = (
         f"https://api.open-meteo.com/v1/forecast"
         f"?latitude={lat}&longitude={lon}"
-        f"&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,relative_humidity_2m_max"
+        f"&daily=temperature_2m_max,temperature_2m_min,precipitation_sum"
+        f"&hourly=relative_humidity_2m"
         f"&forecast_days=7"
         f"&timezone=auto"
     )
@@ -33,15 +34,19 @@ async def get_weather_and_risk(lat: float, lon: float):
         data = response.json()
     
     daily = data["daily"]
-    forecast = []
+    hourly = data["hourly"]
     
+    forecast = []
     for i in range(7):
         temp_max = daily["temperature_2m_max"][i]
         temp_min = daily["temperature_2m_min"][i]
-        humidity = daily["relative_humidity_2m_max"][i]
         rain = daily["precipitation_sum"][i]
         date = daily["time"][i]
         temp_avg = (temp_max + temp_min) / 2
+        
+        # Get average humidity for this day (24 hours per day)
+        day_humidity = hourly["relative_humidity_2m"][i*24:(i+1)*24]
+        humidity = sum(day_humidity) / len(day_humidity) if day_humidity else 70
         
         risks = []
         for risk_type, rule in DISEASE_RISK_RULES.items():
@@ -58,7 +63,7 @@ async def get_weather_and_risk(lat: float, lon: float):
             "date": date,
             "temp_max": temp_max,
             "temp_min": temp_min,
-            "humidity": humidity,
+            "humidity": round(humidity),
             "rain": rain,
             "risk_level": risk_level,
             "risks": risks
