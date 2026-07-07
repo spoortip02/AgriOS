@@ -5,6 +5,7 @@ from database import get_db, Scan
 from model import predict
 from schemas import PredictionResponse, ScanHistory
 from typing import List
+from weather import get_weather_and_risk
 import uvicorn
 
 app = FastAPI(title="AgriOS API", version="1.0.0")
@@ -58,3 +59,11 @@ def get_history(db: Session = Depends(get_db), limit: int = 20):
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+@app.get("/weather")
+async def get_weather(lat: float, lon: float):
+    try:
+        data = await get_weather_and_risk(lat, lon)
+        return data
+    except Exception as e:
+        raise HTTPException(500, f"Weather fetch failed: {str(e)}")    

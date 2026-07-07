@@ -1,6 +1,7 @@
 import { useState } from "react"
 import UploadZone from "./components/UploadZone.jsx"
 import DiagnosisCard from "./components/DiagnosisCard.jsx"
+import WeatherPanel from "./components/WeatherPanel.jsx"
 
 export default function App() {
   const [result, setResult] = useState(null)
@@ -51,6 +52,7 @@ export default function App() {
         )}
         
         {result && <DiagnosisCard result={result} />}
+        <WeatherPanel apiUrl={import.meta.env.VITE_API_URL} />
       </main>
     </div>
   )
