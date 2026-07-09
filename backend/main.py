@@ -64,7 +64,13 @@ if __name__ == "__main__":
 @app.get("/weather")
 async def get_weather(lat: float, lon: float):
     try:
-        data = await get_weather_and_risk(lat, lon)
+        api_key = os.getenv("OPENWEATHER_API_KEY")
+        if not api_key:
+            raise HTTPException(500, "Weather API key not configured")
+        data = await get_weather_and_risk(lat, lon, api_key)
         return data
     except Exception as e:
-        raise HTTPException(500, f"Weather fetch failed: {str(e)}")    
+        raise HTTPException(500, f"Weather fetch failed: {str(e)}")
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
