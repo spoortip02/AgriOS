@@ -18,38 +18,40 @@ DISEASE_RISK_RULES = {
     }
 }
 
-async def get_weather_and_risk(lat: float, lon: float):
+async def get_weather_and_risk(lat: float, lon: float, api_key: str):
     url = (
-        f"https://api.open-meteo.com/v1/forecast"
-        f"?latitude={lat}"
-        f"&longitude={lon}"
-        f"&daily=temperature_2m_max,temperature_2m_min,precipitation_sum"
-        f"&hourly=relative_humidity_2m"
-        f"&forecast_days=7"
-        f"&timezone=auto"
+        f"https://api.openweathermap.org/data/2.5/forecast"
+        f"?lat={lat}&lon={lon}"
+        f"&appid={api_key}"
+        f"&units=metric"
+        f"&cnt=40"
     )
-    
+
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.get(url)
         data = response.json()
-    
-    if "daily" not in data:
-        raise Exception(f"API error: {data}")
-    
-    daily = data["daily"]
-    hourly_humidity = data["hourly"]["relative_humidity_2m"]
-    
-    forecast = []
-    for i in range(7):
-        temp_max = daily["temperature_2m_max"][i]
-        temp_min = daily["temperature_2m_min"][i]
-        rain = daily["precipitation_sum"][i] or 0
-        date = daily["time"][i]
-        temp_avg = (temp_max + temp_min) / 2
 
-        # Average humidity for this day
-        day_humidity = hourly_humidity[i*24:(i+1)*24]
-        humidity = round(sum(day_humidity) / len(day_humidity)) if day_humidity else 70
+    if "list" not in data:
+        raise Exception(f"API error: {data}")
+
+    # Group forecasts by day
+    from collections import defaultdict
+    days = defaultdict(list)
+    for item in data["list"]:
+        date = item["dt_txt"].split(" ")[0]
+        days[date].append(item)
+
+    forecast = []
+    for date, items in list(days.items())[:7]:
+        temps = [i["main"]["temp"] for i in items]
+        humidities = [i["main"]["humidity"] for i in items]
+        rains = [i.get("rain", {}).get("3h", 0) for i in items]
+
+        temp_max = round(max(temps), 1)
+        temp_min = round(min(temps), 1)
+        temp_avg = sum(temps) / len(temps)
+        humidity = round(sum(humidities) / len(humidities))
+        rain = round(sum(rains), 1)
 
         risks = []
         for risk_type, rule in DISEASE_RISK_RULES.items():
@@ -64,10 +66,10 @@ async def get_weather_and_risk(lat: float, lon: float):
 
         forecast.append({
             "date": date,
-            "temp_max": round(temp_max, 1),
-            "temp_min": round(temp_min, 1),
+            "temp_max": temp_max,
+            "temp_min": temp_min,
             "humidity": humidity,
-            "rain": round(rain, 1),
+            "rain": rain,
             "risk_level": risk_level,
             "risks": risks
         })

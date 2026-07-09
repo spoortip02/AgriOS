@@ -7,6 +7,7 @@ from schemas import PredictionResponse, ScanHistory
 from typing import List
 from weather import get_weather_and_risk
 import uvicorn
+import os
 
 app = FastAPI(title="AgriOS API", version="1.0.0")
 
