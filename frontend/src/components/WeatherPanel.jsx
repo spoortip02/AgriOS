@@ -19,8 +19,7 @@ async function cityToCoords(city) {
   if (!data.results || data.results.length === 0) throw new Error("City not found")
   return { lat: data.results[0].latitude, lon: data.results[0].longitude, name: data.results[0].name, country: data.results[0].country }
 }
-
-export default function WeatherPanel({ apiUrl }) {
+export default function WeatherPanel({ apiUrl, onWeatherLoad }) {
   const [weather, setWeather] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -52,6 +51,7 @@ export default function WeatherPanel({ apiUrl }) {
     if (!res.ok) throw new Error(`Server returned ${res.status}`)
     const data = await res.json()
     setWeather(data)
+    if (onWeatherLoad) onWeatherLoad(data)
   } catch (e) {
     setError(`Could not load weather: ${e.message}`)
   } finally {

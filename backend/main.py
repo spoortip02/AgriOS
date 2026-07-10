@@ -6,6 +6,7 @@ from model import predict
 from schemas import PredictionResponse, ScanHistory
 from typing import List
 from weather import get_weather_and_risk
+from irrigation import calculate_irrigation
 import uvicorn
 import os
 
@@ -71,6 +72,19 @@ async def get_weather(lat: float, lon: float):
         return data
     except Exception as e:
         raise HTTPException(500, f"Weather fetch failed: {str(e)}")
-
+@app.post("/irrigation")
+async def get_irrigation(data: dict):
+    try:
+        result = calculate_irrigation(
+            crop=data.get("crop", "tomato"),
+            soil=data.get("soil", "loam"),
+            field_size=float(data.get("field_size", 100)),
+            temp=float(data.get("temp", 25)),
+            humidity=float(data.get("humidity", 60)),
+            rain_forecast=float(data.get("rain_forecast", 0))
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(500, f"Irrigation calculation failed: {str(e)}")
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

@@ -2,11 +2,13 @@ import { useState } from "react"
 import UploadZone from "./components/UploadZone.jsx"
 import DiagnosisCard from "./components/DiagnosisCard.jsx"
 import WeatherPanel from "./components/WeatherPanel.jsx"
+import IrrigationPanel from "./components/IrrigationPanel.jsx"
 
 export default function App() {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [weatherData, setWeatherData] = useState(null)
 
   async function handleUpload(file) {
     setLoading(true)
@@ -52,7 +54,8 @@ export default function App() {
         )}
         
         {result && <DiagnosisCard result={result} />}
-        <WeatherPanel apiUrl={import.meta.env.VITE_API_URL} />
+        <WeatherPanel apiUrl={import.meta.env.VITE_API_URL} onWeatherLoad={setWeatherData} />
+        <IrrigationPanel apiUrl={import.meta.env.VITE_API_URL} weatherData={weatherData} />
       </main>
     </div>
   )
