@@ -7,8 +7,11 @@ from schemas import PredictionResponse, ScanHistory
 from typing import List
 from weather import get_weather_and_risk
 from irrigation import calculate_irrigation
+from advisor import get_farm_advice
+from dotenv import load_dotenv
 import uvicorn
 import os
+load_dotenv()
 
 app = FastAPI(title="AgriOS API", version="1.0.0")
 
@@ -86,5 +89,35 @@ async def get_irrigation(data: dict):
         return result
     except Exception as e:
         raise HTTPException(500, f"Irrigation calculation failed: {str(e)}")
+@app.post("/advisor")
+async def farm_advisor(data: dict, db: Session = Depends(get_db)):
+    try:
+        question = data.get("question", "")
+        if not question:
+            raise HTTPException(400, "Question is required")
+
+        # Get recent scans for context
+        scans = db.query(Scan).order_by(Scan.created_at.desc()).limit(10).all()
+        scan_list = [
+            {
+                "crop": s.crop,
+                "condition": s.condition,
+                "confidence": s.confidence,
+                "created_at": str(s.created_at)
+            }
+            for s in scans
+        ]
+
+        context = {
+            "scans": scan_list,
+            "weather": data.get("weather", {}),
+            "irrigation": data.get("irrigation", {})
+        }
+
+        answer = await get_farm_advice(question, context)
+        return {"answer": answer, "question": question}
+
+    except Exception as e:
+        raise HTTPException(500, f"Advisor failed: {str(e)}")
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
