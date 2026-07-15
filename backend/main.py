@@ -9,6 +9,7 @@ from weather import get_weather_and_risk
 from irrigation import calculate_irrigation
 from advisor import get_farm_advice
 from dotenv import load_dotenv
+from ndvi import calculate_ndvi_zones
 import uvicorn
 import os
 load_dotenv()
@@ -119,5 +120,12 @@ async def farm_advisor(data: dict, db: Session = Depends(get_db)):
 
     except Exception as e:
         raise HTTPException(500, f"Advisor failed: {str(e)}")
+@app.get("/ndvi")
+async def get_ndvi(lat: float, lon: float, field_size: float = 1000, temp: float = 25, humidity: float = 60):
+    try:
+        result = calculate_ndvi_zones(lat, lon, field_size, temp, humidity)
+        return result
+    except Exception as e:
+        raise HTTPException(500, f"NDVI calculation failed: {str(e)}")
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

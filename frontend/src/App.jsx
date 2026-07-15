@@ -4,6 +4,7 @@ import DiagnosisCard from "./components/DiagnosisCard.jsx"
 import WeatherPanel from "./components/WeatherPanel.jsx"
 import IrrigationPanel from "./components/IrrigationPanel.jsx"
 import AdvisorPanel from "./components/AdvisorPanel.jsx"
+import FieldMap from "./components/FieldMap.jsx"
 export default function App() {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -58,6 +59,7 @@ export default function App() {
         <WeatherPanel apiUrl={import.meta.env.VITE_API_URL} onWeatherLoad={setWeatherData} />
         <IrrigationPanel apiUrl={import.meta.env.VITE_API_URL} weatherData={weatherData} />
         <AdvisorPanel apiUrl={import.meta.env.VITE_API_URL} weatherData={weatherData}irrigationData={irrigationData}/>
+        <FieldMap apiUrl={import.meta.env.VITE_API_URL} weatherData={weatherData} />
       </main>
     </div>
   )
